@@ -1,5 +1,7 @@
 # agent-mini
 
+**[English]** | [中文](https://github.com/Kimi-Gao/agent-mini/blob/cn/README.md)
+
 An incremental tutorial project for building a Web UI Agent chat box on top of the pi SDK.
 
 Final goal: a Web UI where you can chat with an agent in the browser, trigger skills, visualize tool calls, and gain Claude Code-equivalent features (permission approvals / MCP / Sub-agent).
