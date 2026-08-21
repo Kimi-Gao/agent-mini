@@ -1,5 +1,7 @@
 # agent-mini
 
+**[中文]** | [English](https://github.com/Kimi-Gao/agent-mini/blob/main/README.md)
+
 基于 pi SDK 构建 Web UI Agent 对话框的渐进式教学项目。
 
 最终目标：一个能在浏览器里跟 agent 对话、可触发 skill、可视化工具调用、并拥有 Claude Code 同等基础能力（权限审批 / MCP / Sub-agent）的 Web UI。
