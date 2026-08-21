@@ -1,151 +1,151 @@
-# day1：命令行 REPL 最小对话
+# day1: CLI REPL minimum viable chat
 
-本目录是 `agent-mini` 项目的 **day1** —— 第一篇基础的开端。
-整体规划见仓库根目录的 [README.md](../README.md)。
+This directory is `agent-mini`'s **day1** — the opening of Track 1.
+See the root [README.md](../README.md) for the overall roadmap.
 
-## 为什么
+## Why
 
-目标是用最少代码看清 SDK 的核心调用，方便后续深入学习扩展。
+Goal: use the minimum amount of code to expose the SDK's core calls, so deeper learning and extension can build on a known baseline.
 
-## 运行
+## Run
 
-需要 Node ≥ 22.6（Node 24 默认开启 `--experimental-strip-types`，无需 tsx 或编译）。
+Requires Node ≥ 22.6 (Node 24 enables `--experimental-strip-types` by default; no tsx or build step needed).
 
 ```bash
 cd day1
 
-# 把全局已装的 pi-coding-agent 链接到本地 node_modules（一次即可）
+# Link the globally installed pi-coding-agent into local node_modules (one-time)
 npm link @earendil-works/pi-coding-agent
 
-# 启动
+# Start
 npm start
-# 等价于：
+# Equivalent to:
 node --experimental-strip-types agent.ts
 ```
 
-启动后会看到 `[model] xxx/xxx`，然后进入 REPL，输入消息即可对话，输入 `exit` 退出。
+After starting you'll see `[model] xxx/xxx`, then enter the REPL. Type a message to chat; type `exit` to quit.
 
-## 核心 SDK 调用一览
+## Core SDK calls at a glance
 
-`agent.ts` 里依次出现的 6 个 SDK 调用：
+Six SDK calls appear in order in `agent.ts`:
 
-| # | 调用 | 作用 |
+| # | Call | Purpose |
 | - | ---- | ---- |
-| ① | `ModelRuntime.create()` | 加载 `~/.pi/agent/auth.json` 和 `models.json`，管理凭据和模型目录 |
-| ② | `modelRuntime.getAvailable()` | 列出已认证可用的模型 |
-| ③ | `createAgentSession({...})` | 创建一个 `AgentSession`（对话状态 + 工具 + LLM 循环） |
-| ④ | `session.subscribe(cb)` | 订阅事件流（流式文本、工具调用、生命周期） |
-| ⑤ | `session.prompt(text)` | 发送用户消息，并 `await` 到本轮结束 |
-| ⑥ | `session.dispose()` | 释放事件订阅和持有的资源 |
+| ① | `ModelRuntime.create()` | Load `~/.pi/agent/auth.json` and `models.json`; manage credentials and the model catalog |
+| ② | `modelRuntime.getAvailable()` | List models with valid credentials |
+| ③ | `createAgentSession({...})` | Create an `AgentSession` (conversation state + tools + LLM loop) |
+| ④ | `session.subscribe(cb)` | Subscribe to the event stream (streaming text, tool calls, lifecycle) |
+| ⑤ | `session.prompt(text)` | Send a user message and `await` until the turn ends |
+| ⑥ | `session.dispose()` | Release event subscriptions and held resources |
 
-## 代码骨架（按行速览）
+## Code skeleton (line-by-line)
 
 ```
-① ModelRuntime.create()        ←  加载凭据 + 模型目录
-② getAvailable() / 取首个模型  ←  选模型
-③ createAgentSession()         ←  组装一个会话（工具 + 会话管理器 + 模型）
-④ session.subscribe()          ←  开始监听事件（流式文本 / 工具 / 生命周期）
-⑤ REPL 循环 + session.prompt() ←  每次输入发一条消息，等本轮结束
-⑥ finally 里 dispose           ←  释放资源
+① ModelRuntime.create()        ←  Load credentials + model catalog
+② getAvailable() / pick first  ←  Choose a model
+③ createAgentSession()         ←  Assemble a session (tools + manager + model)
+④ session.subscribe()          ←  Start listening to events (text / tools / lifecycle)
+⑤ REPL loop + session.prompt() ←  Each input sends one message, awaits turn end
+⑥ dispose in finally           ←  Release resources
 ```
 
-## 三种事件类型（day1 只用到）
+## Three event types used in day1
 
-- `message_update`：当 `assistantMessageEvent.type === "text_delta"` 时，是 LLM 的增量输出文本，直接 `write` 到 stdout 就是流式效果
-- `tool_execution_start`：工具被调用前触发（虽然 day1 工具都是只读的，看不到副作用，但日志里能体现）
-- `agent_end`：一轮结束（LLM 回复 + 所有工具调用 + 重试都完成后），用来换行
+- `message_update`: when `assistantMessageEvent.type === "text_delta"`, this is the LLM's incremental text output — writing it directly to stdout gives a streaming effect
+- `tool_execution_start`: fires before a tool is called (day1 tools are all read-only so you won't see side effects, but it shows up in logs)
+- `agent_end`: end of a turn (LLM reply + all tool calls + retries complete), used for a newline
 
-后续 day 会用到更多事件：`tool_execution_update` / `tool_execution_end`（day4）、`thinking_delta`（day6）、`compaction_*`（day12）等。
+Later days use more events: `tool_execution_update` / `tool_execution_end` (day4), `thinking_delta` (day6), `compaction_*` (day12), etc.
 
-## 术语解释
+## Glossary
 
-按 day1 代码中出现顺序解释，几个后续 day 会接触到的词也一并列出：
+Terms in the order they appear in day1 code; a few words from later days are also listed:
 
-| 术语 | 解释 |
+| Term | Explanation |
 | --- | --- |
-| **REPL** | Read-Eval-Print Loop，读取一行输入、求值（执行）、打印结果、循环。day1 的命令行主循环就是经典 REPL 模式。 |
-| **ModelRuntime** | pi SDK 的“凭据中心 + 模型目录”。读 `~/.pi/agent/auth.json` 和 `models.json`，提供 `getAvailable()` / `setRuntimeApiKey()` / `refresh()` 等方法。 |
-| **AgentSession** | 一个完整的 agent 会话实例。包含对话状态、可调用的工具、当前模型，以及 LLM 循环（接收 → 调工具 → 回 LLM → 重复 → 结束）。 |
-| **SessionManager** | 会话管理器。负责会话的生命周期——创建 / 持久化 / 恢复 / 列出 / 删除。day1 用 `SessionManager.inMemory()` 表示不写磁盘、重启即丢。 |
-| **prompt（动词）** | 在 LLM 语境里，`session.prompt(text)` 表示“把用户这条消息发给 agent 并等本轮完整结束（包含所有 tool 调用和重试）”。不是 CLI 里那种“输入提示符”的意思。 |
-| **subscribe** | 订阅 session 内部的事件流。LLM 的流式输出、tool 调用、生命周期都通过事件抛出，subscribe 是接收它们的唯一渠道。 |
-| **dispose** | 释放 session 持有的资源（事件订阅、内部状态等）。进程退出前必须调用，否则可能泄漏。 |
-| **RPC** | Remote Procedure Call，远程过程调用。day1 不用，但 pi SDK 提供 RPC 模式（`runRpcMode`），可让其他进程用 JSON-RPC 跟 agent 通信。后续 day 可能会用到。 |
-| **SSE** | Server-Sent Events，服务端推送。day2 会用 Node 原生 `http` 加 `text/event-stream` 响应头，把 session 的事件流推到浏览器，前端用 `EventSource` 接收。 |
+| **REPL** | Read-Eval-Print Loop. Reads one line of input, evaluates (executes), prints result, loops. day1's command-line main loop is a classic REPL pattern. |
+| **ModelRuntime** | pi SDK's "credential hub + model catalog". Reads `~/.pi/agent/auth.json` and `models.json`, exposes `getAvailable()` / `setRuntimeApiKey()` / `refresh()` etc. |
+| **AgentSession** | One complete agent session instance. Contains conversation state, callable tools, current model, and the LLM loop (receive → call tools → return to LLM → repeat → end). |
+| **SessionManager** | Session manager. Owns session lifecycle — create / persist / restore / list / delete. day1 uses `SessionManager.inMemory()` to mean no disk, lost on restart. |
+| **prompt (verb)** | In LLM context, `session.prompt(text)` means "send this user message to the agent and await the complete turn (including all tool calls and retries)". Not the same as a CLI input prompt. |
+| **subscribe** | Subscribe to the session's internal event stream. Streaming output, tool calls, and lifecycle events are all emitted as events; subscribe is the only channel to receive them. |
+| **dispose** | Release resources held by the session (event subscriptions, internal state, etc.). Must be called before process exit, or resources may leak. |
+| **RPC** | Remote Procedure Call. Not used in day1, but pi SDK ships an RPC mode (`runRpcMode`) that lets other processes talk to the agent over JSON-RPC. May appear in later days. |
+| **SSE** | Server-Sent Events, server push. day2 uses Node's built-in `http` with the `text/event-stream` response header to push session events to the browser; the frontend uses `EventSource` to receive. |
 
-## pi monorepo 包结构
+## pi monorepo package layout
 
-pi 是一个分层的 monorepo，`@earendil-works/pi-coding-agent` 只是最外层的"产品壳"。
-理解各包的分工后，你才知道"什么时候该读哪个仓库 / import 哪个包"。
+pi is a layered monorepo; `@earendil-works/pi-coding-agent` is just the top-level "product shell".
+Once you understand the split, you'll know "which repo to read / which package to import" for each need.
 
-仓库：<https://github.com/earendil-works/pi/tree/main/packages>
+Repo: <https://github.com/earendil-works/pi/tree/main/packages>
 
-### 依赖关系
+### Dependency graph
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  pi-coding-agent   ← CLI / SDK 入口，本仓库用的就是这个     │
+│  pi-coding-agent   ← CLI / SDK entry, what this repo uses    │
 │       │                                                       │
-│       ├──► pi-agent-core    有状态 agent（tool 执行 + 事件流）│
+│       ├──► pi-agent-core    Stateful agent (tool exec + event stream) │
 │       │         │                                            │
-│       │         └──► pi-ai    统一 LLM API（多 provider 适配）│
+│       │         └──► pi-ai    Unified LLM API (multi-provider adapter)│
 │       │                                                        │
-│       ├──► pi-protocol   运行时无关的协议 schema + CBOR 编码  │
+│       ├──► pi-protocol   Runtime-neutral protocol schema + CBOR encoding │
 │       │       ▲                                              │
 │       │       │                                              │
-│       └──► pi-client     远程会话客户端（走 pi-protocol）     │
+│       └──► pi-client     Remote session client (over pi-protocol) │
 │                                                                │
-│  pi-tui            终端 UI 框架（差分渲染、防闪烁）           │
-│  pi-telemetry      供应商中立的遥测契约与类型化 schema          │
+│  pi-tui            Terminal UI framework (differential rendering, no-flicker)│
+│  pi-telemetry      Vendor-neutral telemetry contracts + typed schema │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 各包职责
+### Package responsibilities
 
-| 包 | 职责 | 何时需要看它 |
+| Package | Responsibility | When to read it |
 | --- | --- | --- |
-| **[pi-ai](https://github.com/earendil-works/pi/tree/main/packages/ai)** | 统一 LLM API：多 provider 适配（Anthropic / OpenAI / Gemini / 自定义…）、自动凭据解析、token & cost 跟踪、会话中途换模型。只收录支持 tool calling 的模型。 | 你想直接调 LLM（不带 agent 循环），或想加自定义 provider。 |
-| **[pi-agent-core](https://github.com/earendil-works/pi/tree/main/packages/agent-core)** | 有状态 agent：`Agent` 类负责 tool 执行 + 事件流。基于 `pi-ai`，不依赖 TUI/CLI。SQLite 会话后端是独立包 `pi-session-backend-sqlite-node`。 | 你想自己写一个 agent 框架 / 想直接操作 `state.messages` / `.tools`。 |
-| **[pi-protocol](https://github.com/earendil-works/pi/tree/main/packages/protocol)** | 运行时无关的协议：消息 schema、CBOR 编码、长度前缀字节流帧。协议版本 1：4 字节大端长度 + 一条 CBOR 消息。 | 你要实现自定义传输（WebSocket / Unix socket / IPC）让 pi 跑在远端。 |
-| **[pi-tui](https://github.com/earendil-works/pi/tree/main/packages/tui)** | 极简终端 UI 框架：差分渲染、CSI 2026 同步输出（防闪烁）、Markdown / Editor / SelectList 等组件、Kitty / iTerm2 内联图片。 | 你要给 pi 写一套自定义 TUI，或复用它的组件做别的 CLI。 |
-| **[pi-client](https://github.com/earendil-works/pi/tree/main/packages/client)** | 远程 pi 会话的传输中立客户端：`PiClient` 走长度前缀 CBOR，通过 `ByteTransport` 接口接入。无 Node 专用依赖。 | 你的前端 / 服务端要连接一个远端 pi 进程。 |
-| **[pi-telemetry](https://github.com/earendil-works/pi/tree/main/packages/telemetry)** | 供应商中立的遥测契约：`TelemetryContext` / `TelemetrySpan`、可序列化 schema、内存实现参考。无 exporter，不绑 OpenTelemetry。 | 你想把 pi 接入自家可观测性平台（OpenTelemetry / Sentry / 日志）。 |
-| **[pi-coding-agent](https://github.com/earendil-works/pi/tree/main/packages/coding-agent)** | 把上面拼起来的 CLI + SDK：内置 `read` / `bash` / `edit` / `write` 等工具、会话管理、扩展机制、3 种运行模式（interactive / print / RPC）。 | **默认起点。** `agent.ts` 里 import 的就是它。 |
+| **[pi-ai](https://github.com/earendil-works/pi/tree/main/packages/ai)** | Unified LLM API: multi-provider adapter (Anthropic / OpenAI / Gemini / custom…), automatic auth resolution, token & cost tracking, mid-session model switching. Only models that support tool calling are included. | When you want to call an LLM directly (no agent loop) or add a custom provider. |
+| **[pi-agent-core](https://github.com/earendil-works/pi/tree/main/packages/agent-core)** | Stateful agent: the `Agent` class handles tool execution + event stream. Built on `pi-ai`; doesn't depend on TUI/CLI. SQLite session backend lives in a separate package `pi-session-backend-sqlite-node`. | When you want to build your own agent framework / directly manipulate `state.messages` / `.tools`. |
+| **[pi-protocol](https://github.com/earendil-works/pi/tree/main/packages/protocol)** | Runtime-neutral protocol: message schema, CBOR encoding, length-prefixed byte stream framing. Protocol version 1: 4-byte big-endian length + one CBOR message. | When you implement custom transports (WebSocket / Unix socket / IPC) to run pi remotely. |
+| **[pi-tui](https://github.com/earendil-works/pi/tree/main/packages/tui)** | Minimal terminal UI framework: differential rendering, CSI 2026 synchronized output (no-flicker), components like Markdown / Editor / SelectList, Kitty / iTerm2 inline images. | When you build a custom TUI for pi, or reuse its components for another CLI. |
+| **[pi-client](https://github.com/earendil-works/pi/tree/main/packages/client)** | Transport-neutral client for remote pi sessions: `PiClient` exchanges length-prefixed CBOR via the `ByteTransport` interface. No Node-specific dependencies. | When your frontend / server needs to connect to a remote pi process. |
+| **[pi-telemetry](https://github.com/earendil-works/pi/tree/main/packages/telemetry)** | Vendor-neutral telemetry contracts: `TelemetryContext` / `TelemetrySpan`, serializable schemas, in-memory reference implementation. No exporter; not bound to OpenTelemetry. | When you wire pi into your own observability platform (OpenTelemetry / Sentry / logs). |
+| **[pi-coding-agent](https://github.com/earendil-works/pi/tree/main/packages/coding-agent)** | The CLI + SDK that wires the above together: built-in `read` / `bash` / `edit` / `write` tools, session management, extension mechanism, 3 run modes (interactive / print / RPC). | **Default starting point.** This is what `agent.ts` imports. |
 
-### 本教程 import 的是哪个
+### What this tutorial imports
 
-`agent.ts` 里只有一行 import，全部来自 **`pi-coding-agent`**：
+`agent.ts` has only one import line, and it comes entirely from **`pi-coding-agent`**:
 
 ```ts
 import { createAgentSession, ModelRuntime, SessionManager } from "@earendil-works/pi-coding-agent";
 ```
 
-这意味着：
-- `createAgentSession()` 内部组装了 `pi-agent-core` + `pi-ai` + 各种工具。
-- `ModelRuntime` 是 `pi-ai` 凭据解析 + 模型目录的薄包装，加上 SDK 层的诊断信息。
-- `SessionManager` 是 SDK 层的会话树管理（fork / branch / 持久化）。
+This means:
+- `createAgentSession()` internally wires `pi-agent-core` + `pi-ai` + various tools.
+- `ModelRuntime` is a thin wrapper over `pi-ai`'s auth resolution + model catalog, plus diagnostic info from the SDK layer.
+- `SessionManager` is the SDK-layer session tree manager (fork / branch / persist).
 
-如果你只做"嵌入式 agent"，`pi-coding-agent` 就够了。
-当你要做"自定义传输 / 自定义 UI / 接入自己模型目录"时，再去直接读下面的子包。
+If you only build an "embedded agent", `pi-coding-agent` is enough.
+When you need "custom transport / custom UI / your own model catalog", dive into the sub-packages.
 
-## 扩展阅读
+## Further reading
 
-只列和 day1 直接相关的官方资源（其他能力会在后续 day 里出现）：
+Only resources directly relevant to day1 (other capabilities appear in their respective days):
 
-- [docs/sdk.md](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/sdk.md) — pi SDK 全量参考手册。读“Quick Start”和“Core Concepts”两节就足够理解 day1 的所有调用。
-- [examples/sdk/01-minimal.ts](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/examples/sdk/01-minimal.ts) — pi 官方最简示例，和 day1 是同骨架，可以两边对着看。
-- [examples/sdk/05-tools.ts](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/examples/sdk/05-tools.ts) — 工具白名单与自定义工具（`defineTool`）。day1 用到了内置工具部分。
-- [examples/sdk/11-sessions.ts](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/examples/sdk/11-sessions.ts) — 会话管理与持久化。day1 用到了 `SessionManager.inMemory()`。
+- [docs/sdk.md](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/sdk.md) — pi SDK full reference. Reading "Quick Start" and "Core Concepts" is enough to understand all of day1's calls.
+- [examples/sdk/01-minimal.ts](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/examples/sdk/01-minimal.ts) — pi's official minimal example, same skeleton as day1 — read them side by side.
+- [examples/sdk/05-tools.ts](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/examples/sdk/05-tools.ts) — Tool whitelist and custom tools (`defineTool`). day1 uses the built-in tool portion.
+- [examples/sdk/11-sessions.ts](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/examples/sdk/11-sessions.ts) — Session management and persistence. day1 uses `SessionManager.inMemory()`.
 
-## 常用扩展点
+## Common extension points
 
-只列 day1 代码里能直接改、立刻能看到效果的几行改动：
+Only changes you can make directly in day1 code that produce an immediate effect:
 
-- **加 bash / edit / write 工具**：把 `agent.ts` 里 `tools: [...]` 改成 `["read", "bash", "edit", "write"]`，agent 就能写文件和跑命令了（注意安全）。
-- **持久化对话**：把 `SessionManager.inMemory()` 换成 `SessionManager.create(process.cwd())`，会话会写到 `~/.pi/agent/sessions/` 下，重启后能继续。
+- **Add bash / edit / write tools**: change `tools: [...]` in `agent.ts` to `["read", "bash", "edit", "write"]` — the agent can then write files and run commands (mind safety).
+- **Persist conversations**: change `SessionManager.inMemory()` to `SessionManager.create(process.cwd())` — sessions will be written under `~/.pi/agent/sessions/` and survive restarts.
 
-## 下一步
+## Next step
 
-进入 **day2：Web UI 最小版**。把 day1 的 REPL 替换成 HTTP handler，前端用 `EventSource` 接收 SSE 流。
+Proceed to **day2: Web UI minimum viable version**. Replace day1's REPL with an HTTP handler; the frontend uses `EventSource` to receive the SSE stream.
 
-根 README 的"第一篇"表格里有 day2-day6 的完整路线图。
+See the full roadmap for day2-day6 in the "Track 1" table of the root README.
