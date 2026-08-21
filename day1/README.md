@@ -112,26 +112,21 @@ import { createAgentSession, ModelRuntime, SessionManager } from "@earendil-work
 如果你只做"嵌入式 agent"，`pi-coding-agent` 就够了。
 当你要做"自定义传输 / 自定义 UI / 接入自己模型目录"时，再去直接读下面的子包。
 
-## 下一步学习路径
+## 扩展阅读
 
-按这个顺序读官方文档和示例，循序渐进：
+只列和 day1 直接相关的官方资源（其他能力会在后续 day 里出现）：
 
-1. [docs/sdk.md](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/sdk.md) — 全量 SDK 参考
-2. [examples/sdk/01-minimal.ts](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/examples/sdk/01-minimal.ts) — 最简示例
-3. `02-custom-model.ts` — 指定具体模型 / 自定义模型目录
-4. `03-custom-prompt.ts` — 通过 `DefaultResourceLoader` 覆盖系统提示词
-5. `05-tools.ts` — 工具白名单 + 自定义工具 (`defineTool`)
-6. `06-extensions.ts` — 扩展（可在 `pi.registerTool` / 监听事件）
-7. `11-sessions.ts` — 持久化会话、`fork` / `branch`
-8. `12-full-control.ts` — 直接操作 `session.agent.state`（消息、工具、模型）
+- [docs/sdk.md](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/sdk.md) — pi SDK 全量参考手册。读“Quick Start”和“Core Concepts”两节就足够理解 day1 的所有调用。
+- [examples/sdk/01-minimal.ts](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/examples/sdk/01-minimal.ts) — pi 官方最简示例，和 day1 是同骨架，可以两边对着看。
+- [examples/sdk/05-tools.ts](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/examples/sdk/05-tools.ts) — 工具白名单与自定义工具（`defineTool`）。day1 用到了内置工具部分。
+- [examples/sdk/11-sessions.ts](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/examples/sdk/11-sessions.ts) — 会话管理与持久化。day1 用到了 `SessionManager.inMemory()`。
 
 ## 常用扩展点
 
-- **加 bash/edit/write 工具**：把 `agent.ts` 里 `tools: [...]` 改成 `["read","bash","edit","write"]`。
-- **持久化对话**：把 `SessionManager.inMemory()` 换成 `SessionManager.create(process.cwd())`。
-- **自定义系统提示词**：用 `new DefaultResourceLoader({ systemPromptOverride: () => "..." })`，传给 `createAgentSession`。
-- **添加自定义工具**：用 `defineTool({ name, description, parameters, execute })`，通过 `customTools` 传入。
-- **切换模型**：`session.setModel(getModel("anthropic", "claude-opus-4-5"))`。
+只列 day1 代码里能直接改、立刻能看到效果的几行改动：
+
+- **加 bash / edit / write 工具**：把 `agent.ts` 里 `tools: [...]` 改成 `["read", "bash", "edit", "write"]`，agent 就能写文件和跑命令了（注意安全）。
+- **持久化对话**：把 `SessionManager.inMemory()` 换成 `SessionManager.create(process.cwd())`，会话会写到 `~/.pi/agent/sessions/` 下，重启后能继续。
 
 ## 下一步
 
