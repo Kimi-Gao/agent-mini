@@ -57,6 +57,20 @@ node --experimental-strip-types agent.ts
 
 后续 day 会用到更多事件：`tool_execution_update` / `tool_execution_end`（day4）、`thinking_delta`（day6）、`compaction_*`（day12）等。
 
+## 名词解释
+
+按 day1 代码中出现顺序解释，几个后续 day 会接触到的词也一并列出：
+
+- **REPL**（Read-Eval-Print Loop）：读取一行输入、求值（执行）、打印结果、循环。day1 的命令行主循环就是经典 REPL 模式。
+- **ModelRuntime**：pi SDK 的“凭据中心 + 模型目录”。读 `~/.pi/agent/auth.json` 和 `models.json`，提供 `getAvailable()` / `setRuntimeApiKey()` / `refresh()` 等方法。
+- **AgentSession**：一个完整的 agent 会话实例。包含对话状态、可调用的工具、当前模型，以及 LLM 循环（接收 → 调工具 → 回 LLM → 重复 → 结束）。
+- **SessionManager**：会话管理器。负责会话的生命周期——创建 / 持久化 / 恢复 / 列出 / 删除。day1 用 `SessionManager.inMemory()` 表示不写磁盘、重启即丢。
+- **prompt（动词）**：在 LLM 语境里，`session.prompt(text)` 表示“把用户这条消息发给 agent 并等本轮完整结束（包含所有 tool 调用和重试）”。不是 CLI 里那种“输入提示符”的意思。
+- **subscribe**：订阅 session 内部的事件流。LLM 的流式输出、tool 调用、生命周期都通过事件抛出，subscribe 是接收它们的唯一渠道。
+- **dispose**：释放 session 持有的资源（事件订阅、内部状态等）。进程退出前必须调用，否则可能泄漏。
+- **RPC**（Remote Procedure Call）：远程过程调用。day1 不用，但 pi SDK 提供 RPC 模式（`runRpcMode`），可让其他进程用 JSON-RPC 跟 agent 通信。后续 day 可能会用到。
+- **SSE**（Server-Sent Events）：服务端推送。day2 会用 Node 原生 `http` 加 `text/event-stream` 响应头，把 session 的事件流推到浏览器，前端用 `EventSource` 接收。
+
 ## pi monorepo 包结构
 
 pi 是一个分层的 monorepo，`@earendil-works/pi-coding-agent` 只是最外层的"产品壳"。
