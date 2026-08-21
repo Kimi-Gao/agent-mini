@@ -12,7 +12,7 @@
 
 | Day | 目标 | 关键技能 / pi SDK 能力 |
 | --- | --- | --- |
-| **day1** | 命令行 REPL 最小对话 | `createAgentSession`、`subscribe`、`prompt` |
+| [**day1**](./day1/) | 命令行 REPL 最小对话 | `createAgentSession`、`subscribe`、`prompt` |
 | **day2** | Web UI 最小版（单会话 + SSE 流式推送） | Node `http` + `EventSource`；服务端把 `subscribe` 的事件转写成 SSE |
 | **day3** | 多会话管理（侧边栏 + 新建/切换/删除会话） | `createAgentSessionRuntime`、`runtime.newSession` / `switchSession` |
 | **day4** | 工具调用可视化（每次工具调用一张可折叠卡片） | `tool_execution_start` / `_update` / `_end` 三事件 |
@@ -41,7 +41,7 @@
 ```
 agent-mini/
 ├── README.md                ← 本文件：总体规划
-├── day1/                    ← CLI REPL 最小对话
+├── day1/                    ← CLI REPL 最小对话（[README](./day1/README.md)）
 │   ├── agent.ts
 │   ├── package.json
 │   ├── node_modules/        （symlink → 全局 pi-coding-agent）
@@ -51,8 +51,8 @@ agent-mini/
 
 ## 当前进度
 
-- [x] **day1**：CLI REPL 最小对话
-- [ ] **day2**：Web UI 最小版（待开始）
+- [x] [**day1**](./day1/)：CLI REPL 最小对话
+- [ ] day2：Web UI 最小版（待开始）
 
 ## 怎么跑
 
@@ -62,7 +62,7 @@ npm link @earendil-works/pi-coding-agent   # 一次即可
 npm start                                   # node --experimental-strip-types agent.ts
 ```
 
-详见各 day 子目录的 README。
+详见 [day1 的 README](./day1/README.md)。
 
 ## 一些设计约定
 
