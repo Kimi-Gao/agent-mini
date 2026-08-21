@@ -12,12 +12,12 @@
 
 | Day | 状态 | 目标 | 关键技能 / pi SDK 能力 |
 | --- | --- | --- | --- |
-| [**day1**](./day1/) | [x] | 命令行 REPL 最小对话 | `createAgentSession`、`subscribe`、`prompt` |
-| day2 | [ ] | Web UI 最小版（单会话 + SSE 流式推送） | Node `http` + `EventSource`；服务端把 `subscribe` 的事件转写成 SSE |
-| day3 | [ ] | 多会话管理（侧边栏 + 新建/切换/删除会话） | `createAgentSessionRuntime`、`runtime.newSession` / `switchSession` |
-| day4 | [ ] | 工具调用可视化（每次工具调用一张可折叠卡片） | `tool_execution_start` / `_update` / `_end` 三事件 |
-| day5 | [ ] | Skills 面板 + 自定义工具按钮 | `DefaultResourceLoader({ skillsOverride })` + `defineTool` |
-| day6 | [ ] | 思考过程可视化 + 工具人工审批 + 持久化 | `thinking_delta` 事件 + 事件拦截 + `SessionManager.create` |
+| [**day1**](./day1/) | ✅ | 命令行 REPL 最小对话 | `createAgentSession`、`subscribe`、`prompt` |
+| day2 | ⬜ | Web UI 最小版（单会话 + SSE 流式推送） | Node `http` + `EventSource`；服务端把 `subscribe` 的事件转写成 SSE |
+| day3 | ⬜ | 多会话管理（侧边栏 + 新建/切换/删除会话） | `createAgentSessionRuntime`、`runtime.newSession` / `switchSession` |
+| day4 | ⬜ | 工具调用可视化（每次工具调用一张可折叠卡片） | `tool_execution_start` / `_update` / `_end` 三事件 |
+| day5 | ⬜ | Skills 面板 + 自定义工具按钮 | `DefaultResourceLoader({ skillsOverride })` + `defineTool` |
+| day6 | ⬜ | 思考过程可视化 + 工具人工审批 + 持久化 | `thinking_delta` 事件 + 事件拦截 + `SessionManager.create` |
 
 ### 第二篇：进阶（Claude Code 基础能力）
 
@@ -28,13 +28,13 @@
 
 | Day | 状态 | 目标 | 关键技能 / pi SDK 能力 |
 | --- | --- | --- | --- |
-| day7 | [ ] | 工具权限审批系统（人类在环） | 拦截 `tool_execution_start`；前端弹确认框；服务端挂起等用户决策再放行。参考 `examples/extensions/permission-gate.ts` |
-| day8 | [ ] | MCP 集成（接入外部工具协议） | `extensionFactories` + MCP server；工具自动注册到 session。前端把 MCP 工具列在工具面板 |
-| day9 | [ ] | Sub-agent（Task 工具 + 嵌套 session） | 自定义 `task` 工具；内部 `createAgentSession` 起子会话；把子会话的事件流冒泡到父会话。参考 `examples/extensions/subagent/` |
-| day10 | [ ] | Hooks / 扩展机制全掌握 | `pi.on()` 监听所有事件；`ctx.ui.confirm/notify` 与用户交互；`ctx.sendUserMessage` 注入消息 |
-| day11 | [ ] | 会话持久化 + 恢复 + 分支 | `SessionManager.create/list/open/continueRecent` + `navigateTree` + `fork` |
-| day12 | [ ] | Compaction（长会话自动压缩） | `session.compact()` + `SettingsManager` 中的 `compaction.enabled` / 阈值；前端展示压缩事件 |
-| day13 | [ ] | Slash commands + 主题 + Plan Mode | `promptsOverride` 注入命令；主题文件；参考 `examples/extensions/plan-mode/` 自行实现 |
+| day7 | ⬜ | 工具权限审批系统（人类在环） | 拦截 `tool_execution_start`；前端弹确认框；服务端挂起等用户决策再放行。参考 `examples/extensions/permission-gate.ts` |
+| day8 | ⬜ | MCP 集成（接入外部工具协议） | `extensionFactories` + MCP server；工具自动注册到 session。前端把 MCP 工具列在工具面板 |
+| day9 | ⬜ | Sub-agent（Task 工具 + 嵌套 session） | 自定义 `task` 工具；内部 `createAgentSession` 起子会话；把子会话的事件流冒泡到父会话。参考 `examples/extensions/subagent/` |
+| day10 | ⬜ | Hooks / 扩展机制全掌握 | `pi.on()` 监听所有事件；`ctx.ui.confirm/notify` 与用户交互；`ctx.sendUserMessage` 注入消息 |
+| day11 | ⬜ | 会话持久化 + 恢复 + 分支 | `SessionManager.create/list/open/continueRecent` + `navigateTree` + `fork` |
+| day12 | ⬜ | Compaction（长会话自动压缩） | `session.compact()` + `SettingsManager` 中的 `compaction.enabled` / 阈值；前端展示压缩事件 |
+| day13 | ⬜ | Slash commands + 主题 + Plan Mode | `promptsOverride` 注入命令；主题文件；参考 `examples/extensions/plan-mode/` 自行实现 |
 
 ## 目录结构
 
