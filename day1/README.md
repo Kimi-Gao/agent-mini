@@ -57,7 +57,7 @@ node --experimental-strip-types agent.ts
 
 后续 day 会用到更多事件：`tool_execution_update` / `tool_execution_end`（day4）、`thinking_delta`（day6）、`compaction_*`（day12）等。
 
-## 名词解释
+## 术语解释
 
 按 day1 代码中出现顺序解释，几个后续 day 会接触到的词也一并列出：
 
