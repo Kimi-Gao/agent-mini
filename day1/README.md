@@ -17,6 +17,8 @@ so you can extend from a known-good baseline.
 Requires Node ≥ 22.6 (Node 24 enables `--experimental-strip-types` by default).
 
 ```bash
+cd day1
+
 # 把全局已装的 pi-coding-agent link 到本地 node_modules（一次即可）
 # Link the globally installed pi-coding-agent into this project (once).
 npm link @earendil-works/pi-coding-agent
